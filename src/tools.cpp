@@ -46,31 +46,28 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   /**
     * Calculate a Jacobian here.
   */
-  MatrixXd Hj(3,4);
+	MatrixXd Hj(3,4);
+	//recover state parameters
+	float px = x_state(0);
+	float py = x_state(1);
+	float vx = x_state(2);
+	float vy = x_state(3);
 
-  float px = x_state(0);
-  float py = x_state(1);
-  float vx = x_state(2);
-  float vy = x_state(3);
+	//pre-compute a set of terms to avoid repeated calculation
+	float den = sqrt(px*px+py*py);
+	
 
-  //check division by zero
-  if(px==0&&py==0){
-    cout<<"CalculateJacobian()-Error-Division by zero"<<endl;
-    Hj<<0,0,0,0,
-        0,0,0,0,
-        0,0,0,0;
-  }
-  else{
-    double den=sqrt(px*px+py*py);
-    Hj(0,0)=px/den;
-    Hj(0,1)=py/den;
-    Hj(1,0)=-py/pow(den,2);
-    Hj(1,1)=px/pow(den,2);
-    Hj(2,0)=py*(vx*py-vy*px)/pow(den,3);
-    Hj(2,1)=px*(vy*px-vx*py)/pow(den,3);
-    Hj(2,2)=px/den;
-    Hj(2,3)=py/den;
-  }
-  
+	//check division by zero
+	if(fabs(px*px+py*py) < 0.0001){
+		cout << "CalculateJacobian () - Error - Division by Zero" << endl;
+		return Hj;
+	}
+
+	//compute the Jacobian matrix
+	Hj << (px/den), (py/den), 0, 0,
+		  -(py/pow(den,2)), (px/pow(den,2)), 0, 0,
+		  py*(vx*py - vy*px)/pow(den,3), px*(px*vy - py*vx)/pow(den,3), px/den, py/den;
+
+
   return Hj;
 }
